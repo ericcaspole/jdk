@@ -19,8 +19,8 @@ import org.openjdk.bench.util.InMemoryJavaCompiler;
 
 @State(Scope.Thread)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
+@Warmup(iterations = 5, time = 1)
+@Measurement(iterations = 5, time = 1)
 public class ProtectionDomainBench {
 
     @Param({"10", "100"})
@@ -99,14 +99,8 @@ public class ProtectionDomainBench {
         }
     }
 
-    Class a1;
-    Class a2;
-    Class a3;
-
     @Benchmark
-    @Warmup(iterations = 5, time = 1)
-    @Measurement(iterations = 5, time = 1)
-    @Fork(value = 2, jvmArgsAppend={"-Djava.security.manager=allow"})
+    @Fork(value = 3, jvmArgsAppend={"-Djava.security.manager=allow"})
     public void bench()  throws ClassNotFoundException {
 
         ProtectionDomainBench.ProtectionDomainBenchLoader loader1 = new
