@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
@@ -18,7 +19,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.bench.util.InMemoryJavaCompiler;
 
 @State(Scope.Thread)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 5, time = 1)
 @Measurement(iterations = 5, time = 1)
 public class ProtectionDomainBench {
@@ -45,6 +46,7 @@ public class ProtectionDomainBench {
     static int index = 0;
     CodeSource cs, cs2;
     Permissions p, p2;
+    static ProtectionDomain[] pd;
 
     static String B(int count) {
         return new String("public class B" + count + " {"
@@ -55,13 +57,11 @@ public class ProtectionDomainBench {
                 + "}");
     }
 
-    @Setup
+    @Setup(Level.Iteration)
     public void setupClasses() throws Exception {
         compiledClasses = new byte[numberOfClasses][];
         loadedClasses = new Class[numberOfClasses];
-        for (int i = 0; i < numberOfClasses; i++) {
-            compiledClasses[i] = InMemoryJavaCompiler.compile("B" + i, B(i));
-        }
+        pd = new ProtectionDomain[numberOfClasses];
 
         cs = new CodeSource(u, (java.security.cert.Certificate[]) null);
         cs2 =new CodeSource(u2, (java.security.cert.Certificate[]) null);
@@ -76,6 +76,12 @@ public class ProtectionDomainBench {
         p2.add(new FilePermission("/tmp", "write"));
         p2.add(new FilePermission("/tmp", "execute"));
         p2.add(new FilePermission("/tmp", "delete"));
+
+        for (int i = 0; i < numberOfClasses; i++) {
+            compiledClasses[i] = InMemoryJavaCompiler.compile("B" + i, B(i));
+            pd[i] = new ProtectionDomain(cs, i % 2 == 0 ? p : p2 /*, loader1, null */);
+        }
+
     }
 
     static class ProtectionDomainBenchLoader extends ClassLoader {
@@ -92,7 +98,7 @@ public class ProtectionDomainBench {
         protected Class<?> findClass(String name) throws ClassNotFoundException {
             if (name.equals("B" + index)) {
                 assert compiledClasses[index]  != null;
-                return defineClass(name, compiledClasses[index] , 0, (compiledClasses[index]).length);
+                return defineClass(name, compiledClasses[index] , 0, (compiledClasses[index]).length, pd[index] );
             } else {
                 return super.findClass(name);
             }
@@ -105,8 +111,6 @@ public class ProtectionDomainBench {
 
         ProtectionDomainBench.ProtectionDomainBenchLoader loader1 = new
                 ProtectionDomainBench.ProtectionDomainBenchLoader();
-        ProtectionDomain pd1 = new ProtectionDomain(cs, p, loader1, null);
-        ProtectionDomain pd2 = new ProtectionDomain(cs2, p2, loader1, null);
 
         for (index = 0; index < compiledClasses.length; index++) {
             String name = new String("B" + index);
