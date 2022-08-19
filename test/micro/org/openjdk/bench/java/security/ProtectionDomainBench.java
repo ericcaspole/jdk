@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
+ */
+
 package org.openjdk.bench.java.security;
 
 import java.security.*;
@@ -6,9 +29,11 @@ import java.io.*;
 
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
@@ -19,34 +44,25 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.bench.util.InMemoryJavaCompiler;
 
 @State(Scope.Thread)
-@OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 5, time = 1)
-@Measurement(iterations = 5, time = 1)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Warmup(iterations = 15)
+@Measurement(iterations = 15)
+@BenchmarkMode(Mode.SingleShotTime)
+@Fork(value = 3, jvmArgsAppend={"-Djava.security.manager=allow"})
 public class ProtectionDomainBench {
 
     @Param({"10", "100"})
     public int numberOfClasses = 50;
 
-    final String host = "localhost";
-
-    URL u, u2;
-
-    @Setup
-    public void setup() throws IOException {
-        u = new URL("file:/tmp/duke");
-        u2 = new URL("file:/tmp/foo");
-
-        p = new Permissions();
-        p.add(new SocketPermission(host, "connect"));
-
-    }
+    URL u;
 
     static byte[][] compiledClasses;
     static Class[] loadedClasses;
-    static int index = 0;
-    CodeSource cs, cs2;
-    Permissions p, p2;
     static ProtectionDomain[] pd;
+    static String[] classNames;
+    static int index = 0;
+    CodeSource cs;
+    Permissions p;
 
     static String B(int count) {
         return new String("public class B" + count + " {"
@@ -62,24 +78,17 @@ public class ProtectionDomainBench {
         compiledClasses = new byte[numberOfClasses][];
         loadedClasses = new Class[numberOfClasses];
         pd = new ProtectionDomain[numberOfClasses];
+        classNames = new String[numberOfClasses];
 
+        u = new URL("file:/tmp/duke");
         cs = new CodeSource(u, (java.security.cert.Certificate[]) null);
-        cs2 =new CodeSource(u2, (java.security.cert.Certificate[]) null);
         p = new Permissions();
-        p.add(new SocketPermission(host, "connect"));
-        p.add(new SocketPermission(host, "accept"));
-        p.add(new SocketPermission(host, "listen"));
-        p.add(new SocketPermission(host, "resolve"));
-
-        p2 = new Permissions();
-        p2.add(new FilePermission("/tmp", "read"));
-        p2.add(new FilePermission("/tmp", "write"));
-        p2.add(new FilePermission("/tmp", "execute"));
-        p2.add(new FilePermission("/tmp", "delete"));
+        p.add(new SocketPermission("localhost", "connect"));
 
         for (int i = 0; i < numberOfClasses; i++) {
-            compiledClasses[i] = InMemoryJavaCompiler.compile("B" + i, B(i));
-            pd[i] = new ProtectionDomain(cs, i % 2 == 0 ? p : p2 /*, loader1, null */);
+            classNames[i] = "B" + i;
+            compiledClasses[i] = InMemoryJavaCompiler.compile(classNames[i], B(i));
+            pd[i] = new ProtectionDomain(cs, p);
         }
 
     }
@@ -96,7 +105,7 @@ public class ProtectionDomainBench {
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-            if (name.equals("B" + index)) {
+            if (name.equals(classNames[index] /* "B" + index */)) {
                 assert compiledClasses[index]  != null;
                 return defineClass(name, compiledClasses[index] , 0, (compiledClasses[index]).length, pd[index] );
             } else {
@@ -106,15 +115,13 @@ public class ProtectionDomainBench {
     }
 
     @Benchmark
-    @Fork(value = 3, jvmArgsAppend={"-Djava.security.manager=allow"})
     public void bench()  throws ClassNotFoundException {
 
         ProtectionDomainBench.ProtectionDomainBenchLoader loader1 = new
                 ProtectionDomainBench.ProtectionDomainBenchLoader();
 
         for (index = 0; index < compiledClasses.length; index++) {
-            String name = new String("B" + index);
-            Class c = loader1.findClass(name);
+            Class c = loader1.findClass(classNames[index]);
             loadedClasses[index] = c;
         }
     }
