@@ -50,30 +50,30 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.bench.util.InMemoryJavaCompiler;
 
 @State(Scope.Benchmark)
-@Warmup(iterations = 20, time = 2)
+@Warmup(iterations = 5, time = 10)
 @Measurement(iterations = 15, time = 2)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@Threads(1)
+@Threads(6)
 @Fork(value = 2)
 public class CodeCacheStress {
 
     // The number of distinct classes generated from the source string below
     // All the classes are "warmed up" by invoking their methods to get compiled by the jit
-    @Param({"100"})
+    @Param({"100", "200", "300", "400", "500"})
     public int numberOfClasses;
 
-    // The range of these classes to use in the measured phase after the warm up
-    @Param({"100"})
-    public int rangeOfClasses;
-
     // How deep is the recursion when calling into the generated classes
-    @Param({"20"})
+    @Param({"10"})
     public int recurse;
 
     // How many instances of each generated class to create and call in the measurement phase
-    @Param({"100"})
+    @Param({"50"})
     public int instanceCount;
+
+    // How deep is the recursion when calling into the generated classes
+    @Param({"true", "false"})
+    public boolean sequential;
 
     byte[][] compiledClasses;
     Class[] loadedClasses;
@@ -390,16 +390,32 @@ public class CodeCacheStress {
         System.gc();
     }
 
-    Class chooseClass() {
-        ThreadLocalRandom tlr = ThreadLocalRandom.current();
-        int whichClass = tlr.nextInt(rangeOfClasses);
-        return loadedClasses[whichClass];
+    @State(Scope.Thread)
+    public static class ThreadState {
+        int sequentialClass = 0;
+        int sequentialInstance = 0;
     }
 
-    Object chooseInstance(Class c) {
-        ThreadLocalRandom tlr = ThreadLocalRandom.current();
-        int whichInst = tlr.nextInt(instanceCount);
-        return ((Object[]) instancesOfClassMap.get(c))[whichInst];
+    Class chooseClass(ThreadState state) {
+        if (sequential) {
+            state.sequentialClass = (++state.sequentialClass) % numberOfClasses;
+            return loadedClasses[state.sequentialClass];
+        } else {
+            ThreadLocalRandom tlr = ThreadLocalRandom.current();
+            int whichClass = tlr.nextInt(numberOfClasses);
+            return loadedClasses[whichClass];
+        }
+    }
+
+    Object chooseInstance(ThreadState state, Class c) {
+        if (sequential) {
+            state.sequentialInstance = (++state.sequentialInstance) % instanceCount;
+            return ((Object[]) instancesOfClassMap.get(c))[state.sequentialInstance];
+        } else {
+            ThreadLocalRandom tlr = ThreadLocalRandom.current();
+            int whichInst = tlr.nextInt(instanceCount);
+            return ((Object[]) instancesOfClassMap.get(c))[whichInst];
+        }
     }
 
     Method chooseMethod(Class c) {
@@ -418,15 +434,17 @@ public class CodeCacheStress {
         return (Integer) m.invoke(r, map, k, recurse);
     }
 
+
+
     @Benchmark
-    public Integer work() throws Exception {
+    public Integer work(ThreadState state) throws Exception {
         int sum = 0;
 
         // Call a method of a random instance of a random class up to the specified range
         for (int index = 0; index < compiledClasses.length; index++) {
             try {
-                Class c = chooseClass();
-                Object r = chooseInstance(c);
+                Class c = chooseClass(state);
+                Object r = chooseInstance(state, c);
                 Method m = chooseMethod(c);
                 assert m != null;
                 Map map = chooseMap();
