@@ -54,13 +54,13 @@ import org.openjdk.bench.util.InMemoryJavaCompiler;
 @Measurement(iterations = 15, time = 2)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@Threads(6)
+@Threads(1)
 @Fork(value = 2)
 public class CodeCacheStress {
 
     // The number of distinct classes generated from the source string below
     // All the classes are "warmed up" by invoking their methods to get compiled by the jit
-    @Param({"100", "200", "300", "400", "500"})
+    @Param({"200", "300", "400", "500"})
     public int numberOfClasses;
 
     // How deep is the recursion when calling into the generated classes
@@ -72,8 +72,11 @@ public class CodeCacheStress {
     public int instanceCount;
 
     // How deep is the recursion when calling into the generated classes
-    @Param({"true", "false"})
+    @Param({/* "true", */ "false"})
     public boolean sequential;
+
+    @Param({ /* "true", */ "false"})
+    public boolean useMap;
 
     byte[][] compiledClasses;
     Class[] loadedClasses;
@@ -192,30 +195,30 @@ public class CodeCacheStress {
                 + "   public Integer get(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
                 + "         instA += ((depth % 2) + staticA);"
-                + "         return (Integer) m.get(k) + get2(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get2(m, k, --depth);"
                 + "       } else {"
                 + "         setA(depth);"
-                + "         return (Integer) m.get(k)+ 10;"
+                + "         return /* (Integer) m.get(k) + */ 10;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get2(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
                 + "         instB += ((depth % 2) + staticB);"
-                + "         return (Integer) m.get(k) + get3(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get3(m, k, --depth);"
                 + "       } else {"
                 + "         setB(depth);"
-                + "         return (Integer) m.get(k)+ 20;"
+                + "         return /* (Integer) m.get(k) + */ 20;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get3(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
                 + "         instC += ((depth % 2) + staticC);"
-                + "         return (Integer) m.get(k) + get4(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get4(m, k, --depth);"
                 + "       } else {"
                 + "         setC(depth);"
-                + "         return (Integer) m.get(k)+ 30;"
+                + "         return /* (Integer) m.get(k) + */ 30;"
                 + "       }"
                 + "   }"
                 + " "
@@ -223,75 +226,75 @@ public class CodeCacheStress {
                 + "   public Integer get4(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
                 + "         instD += ((depth % 2) + staticD);"
-                + "         return (Integer) m.get(k) + get5(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ + get5(m, k, --depth);"
                 + "       } else {"
                 + "         setD(depth);"
-                + "         return (Integer) m.get(k)+ 40;"
+                + "         return /* (Integer) m.get(k) + */ 40;"
                 + "       }"
                 + "   }"
                 + " "
                 + " "
                 + "   public Integer get5(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get6(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get6(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instA;"
+                + "         return /* (Integer) m.get(k) + */ instA;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get6(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get7(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get7(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instB;"
+                + "         return /* (Integer) m.get(k) + */ instB;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get7(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get8(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get8(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instC;"
+                + "         return /* (Integer) m.get(k) + */ instC;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get8(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get9(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get9(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instD;"
+                + "         return /* (Integer) m.get(k) + */ instD;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get9(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get10(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get10(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instA;"
+                + "         return /* (Integer) m.get(k) + */ instA;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get10(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get11(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get11(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instB;"
+                + "         return /* (Integer) m.get(k) + */ instB;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get11(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get12(m, k, --depth);"
+                + "         return /* (Integer) m.get(k) + */ get12(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instC;"
+                + "         return /* (Integer) m.get(k) + */ instC;"
                 + "       }"
                 + "   }"
                 + " "
                 + "   public Integer get12(Map m, String k, Integer depth) {"
                 + "       if (depth > 0) {"
-                + "         return (Integer) m.get(k) + get(m, k, --depth);"
+                + "         return (Integer) (m != null? m.get(k) : 1 ) + get(m, k, --depth);"
                 + "       } else {"
-                + "         return (Integer) m.get(k)+ instD;"
+                + "         return  (Integer) (m != null? m.get(k) : 1 ) + instD;"
                 + "       }"
                 + "   }"
                 + "}";
@@ -376,7 +379,7 @@ public class CodeCacheStress {
                     try {
                         Object r = ((Object[]) instancesOfClassMap.get(c))[0];
                         Method[] mi = classToMethodsMap.get(r.getClass());
-                        mi[m].invoke(r, argumentMaps.get(0), k, 5);
+                        mi[m].invoke(r, argumentMaps.get(0), k, 12);
                     } catch (Exception e) {
                         System.out.println("Exception = " + e);
                         e.printStackTrace();
@@ -431,7 +434,7 @@ public class CodeCacheStress {
     }
 
     Integer callTheMethod(Method m, Object r, String k, Map map) throws Exception {
-        return (Integer) m.invoke(r, map, k, recurse);
+        return (Integer) m.invoke(r, useMap ? map : null, k, recurse);
     }
 
 
