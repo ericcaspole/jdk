@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -55,23 +55,14 @@ import org.openjdk.bench.util.InMemoryJavaCompiler;
 @Warmup(iterations = 18, time = 5)
 @Measurement(iterations = 10, time = 5)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.SECONDS)
-//@Threads(Threads.HALF_MAX)
-@Threads(6)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Threads(1)
 public class MethodHandleStress {
 
     // The number of distinct classes generated from the source string below
     // All the classes are "warmed up" by invoking their methods to get compiled by the jit
-    @Param({"500"})
+    @Param({"1000"})
     public int classes;
-
-    // The range of these classes to use in the measured phase after the warm up
-    @Param({"450"})
-    public int rangeOfClasses;
-
-    // How deep is the recursion when calling into the generated classes
-    @Param({"30"})
-    public Integer recurse;
 
     // How many instances of each generated class to create and call in the measurement phase
     @Param({"100"})
@@ -122,8 +113,6 @@ public class MethodHandleStress {
                 + "   return this.getClass().getName() + \", targetMethod=\" + targetMethod;"
                 + newLine
                 + "   }"
-                + " "
-                + newLine
                 + " "
                 + " "
                 + newLine
@@ -198,8 +187,6 @@ public class MethodHandleStress {
                 + "     }"
                 + " "
                 + " "
-                + " "
-
                 + "   static int intFieldC" + filler + " = 0;"
                 + "    static int staticPadCA" + filler + " = 0;"
                 + "    static int staticPadCB" + filler + " = 0;"
@@ -231,8 +218,6 @@ public class MethodHandleStress {
                 + "     }"
                 + " "
                 + " "
-                + " "
-
                 + "   static int intFieldD" + filler + " = 0;"
                 + " "
                 + "    static int getStaticD() {"
@@ -242,7 +227,6 @@ public class MethodHandleStress {
                 + "    static void setStaticD(int x) {"
                 + "         intFieldD" + filler + " = x;"
                 + "     }"
-                + " "
                 + " "
                 + " "
                 + " "
@@ -376,24 +360,10 @@ public class MethodHandleStress {
                 + "    int padDT" + filler + " = 0;"
                 + " "
                 + " "
-//                + "      LinkedList<Long> l0 = new LinkedList<>();"
-//                + "      ArrayList<Long> l1 = new ArrayList<Long>(1024);"
-//                + "      HashMap<OptionalInt,Long> l2 = new HashMap<>(1024);"
-//                + "      HashSet<Properties> l3 = new HashSet<>();"
-//                + "      TreeSet<HashSet> l4 = new TreeSet<>();"
-//                + "      LinkedHashSet<HashSet> l5 = new LinkedHashSet<>(1024);"
-//                + "      WeakHashMap<SimpleTimeZone,Double> l12 = new WeakHashMap<>(1024);"
                 + " "
-                + " "
-                + " "
-//                + "    volatile Object target = null;"
                 + " "
                 + "    volatile MethodHandle targetMethod = null;"
                 + " "
-//                + " "
-//                + "   public void setTarget( Object t ) {"
-//                + "     target = t;"
-//                + "   }"
                 + " "
                 + "   public void setMethod( MethodHandle m) {"
                 + "     targetMethod = m;"
@@ -408,31 +378,11 @@ public class MethodHandleStress {
                 + " "
                 + "      static ToIntFunction<Integer> next" + filler + " = d -> decrement" + filler + "(d);"
                 + " "
-//                + newLine
-//                + "      static ToIntFunction<Object> classNameLength" + filler + " = d -> d.getClass().getName().length();"
-//                + newLine
-                + " "
-                + " "
-                + " "
-                + " "
-                + " "
-                + " "
-                + "   public Integer work" + filler + "( Integer depth) throws Throwable { "
-                + "         setB(getMyId() + getStaticB() );"
-                + "         setC( (depth % 2) + getStaticC()  );"
-//                + "         setA( (depth % 2) + getStaticA()  + classNameLength" + filler + ".applyAsInt(this));"
-                + "         setA( (depth % 2) + getStaticA());"
-                + "         setD( (depth % 2) + getStaticD()  );"
-                + "         setStaticA(getA() + getB());"
-                + "         return  getB() + getStaticA() - depth;"
-                + "       }"
                 + " "
                 + newLine
                 + "   public Integer get( Integer depth) throws Throwable { "
                 + newLine
                 + "       if (depth > 0) {"
-                + newLine
-                + "         work" + filler + "( depth );"
                 + newLine
                 + " "
                 + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
@@ -448,153 +398,12 @@ public class MethodHandleStress {
                 + "   public Integer get2" + filler + "( Integer depth) throws Throwable { "
                 + "       if (depth > 0 ) {"
                 + newLine
-                + "         work" + filler + "( depth );"
                 + newLine
                 + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get3" + filler + "( newDepth);"
+                + "         return  getB();"
                 + newLine
                 + "       } else {"
                 + "         return  getB();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + " "
-                + "   public Integer get3" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get4" + filler + "( newDepth);"
-                + " "
-                + "       } else {"
-                + "         return  getC();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + "   public Integer get4" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get5" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getD();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + "   public Integer get5" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + " "
-                + "         return  get6" + filler + "( newDepth);"
-                + " "
-//                + "         return  get11" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getA();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + "   public Integer get6" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get7" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getB();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + " "
-                + "   public Integer get7" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get8" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getA();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + " "
-                + "   public Integer get8" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get9" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getB();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + "   public Integer get9" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get10" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getC();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
-                + " "
-                + "   public Integer get10" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + "         work" + filler + "( depth );"
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  get11" + filler + "( newDepth);"
-                + "       } else {"
-                + "         return  getD();"
-                + "       }"
-                + "   }"
-                + " "
-                + newLine
-                + " "
-//                + "      Function<Integer, Integer> callMH" + filler + " = (d) -> {"
-//                + "          try {"
-//                + "             return (Integer)targetMethod.invokeExact(d);"
-//                + "          }catch (Throwable tt) {"
-//                + "             System.out.println(tt);"
-//                + "             tt.printStackTrace();"
-//                + "          }"
-//                + "             return 0;"
-//                + "      };"
-                + " "
-                + "      BiFunction<Integer, MethodHandle, Integer> callMH2" + filler + " = (d,m) -> {"
-                + "          try {"
-                + "             return (Integer)m.invokeExact(d);"
-                + "          }catch (Throwable tt) {"
-                + "             System.out.println(tt);"
-                + "             tt.printStackTrace();"
-                + "          }"
-                + "             return 0;"
-                + "      };"
-
-                + newLine
-                + " "
-                + "   public Integer get11" + filler + "( Integer depth) throws Throwable { "
-                + newLine
-                + "       if ( depth > 0) {"
-                + newLine
-                + " "
-                + "         work" + filler + "( depth );"
-                + newLine
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + newLine
-//                + "         return (Integer) callMH" + filler + ".apply(newDepth);"
-                + "         return (Integer) callMH2" + filler + ".apply(newDepth, targetMethod);"
-                + newLine
-                + newLine
-                + "       } else {"
-                + " "
-                + newLine
-                + "         return  getD() + getMyId();"
                 + "       }"
                 + "   }"
                 + " "
@@ -723,7 +532,7 @@ public class MethodHandleStress {
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     Class chooseClass() {
         ThreadLocalRandom tlr = ThreadLocalRandom.current();
-        int whichClass = tlr.nextInt(rangeOfClasses);
+        int whichClass = tlr.nextInt(classes);
         return loadedClasses[whichClass];
     }
 
@@ -734,9 +543,11 @@ public class MethodHandleStress {
         return ((Object[]) instancesOfClassMap.get(c))[whichInst];
     }
 
+    static final Integer recurse = new Integer(1);
+
     @CompilerControl(CompilerControl.Mode.DONT_INLINE)
     Integer callTheMethod(MethodHandle m, Object r) throws Throwable {
-        return (Integer) m.invokeExact(recurse);
+        return (Integer) m.invokeExact( recurse );
     }
 
     int executeOne() throws Throwable {
@@ -758,7 +569,7 @@ public class MethodHandleStress {
         int sum = 0;
 
         // Call a method of a random instance of a random class up to the specified range
-        for (int index = 0; index < compiledClasses.length; index++) {
+        for (int index = 0; index < 1 /* loops */; index++) {
             try {
                 sum += executeOne();
             } catch (Throwable e) {
