@@ -104,28 +104,21 @@ public class MethodHandleStress {
                 + " "
                 + "public class B" + count + " {"
                 + " "
-                + " "
-                + "   static int dummy0;"
+                + "    public String toString() {"
                 + newLine
-                + " "
-                + "   public String toString() {"
+                + "        return this.getClass().getName() + \", targetMethod=\" + targetMethod;"
                 + newLine
-                + "   return this.getClass().getName() + \", targetMethod=\" + targetMethod;"
-                + newLine
-                + "   }"
-                + " "
+                + "    }"
                 + " "
                 + newLine
                 + "   static int myId" + " = " + count + ";"
                 + newLine
                 + " "
-                + "   public synchronized int getMyId() {"
-                + "   return myId;"
-                + "   }"
+                + "    public synchronized int getMyId() {"
+                + "       return myId;"
+                + "    }"
                 + " "
-                + " "
-                + " "
-                + "   static int intFieldA" + filler + " = 0;"
+                + "    static int intFieldA" + filler + " = 0;"
                 + "    static int staticPadAA" + filler + " = 0;"
                 + "    static int staticPadAB" + filler + " = 0;"
                 + "    static int staticPadAC" + filler + " = 0;"
@@ -148,15 +141,14 @@ public class MethodHandleStress {
                 + "    static int staticPadAT" + filler + " = 0;"
                 + " "
                 + "    static int getStaticA() {"
-                + "         return intFieldA" + filler + ";"
-                + "     }"
+                + "        return intFieldA" + filler + ";"
+                + "    }"
                 + " "
                 + "    static void setStaticA(int x) {"
-                + "         intFieldA" + filler + " = x;"
-                + "     }"
+                + "        intFieldA" + filler + " = x;"
+                + "    }"
                 + " "
-                + " "
-                + "   static int intFieldB" + filler + " = 0;"
+                + "    static int intFieldB" + filler + " = 0;"
                 + "    static int staticPadBA" + filler + " = 0;"
                 + "    static int staticPadBB" + filler + " = 0;"
                 + "    static int staticPadBC" + filler + " = 0;"
@@ -177,7 +169,7 @@ public class MethodHandleStress {
                 + "    static int staticPadBR" + filler + " = 0;"
                 + "    static int staticPadBS" + filler + " = 0;"
                 + "    static int staticPadBT" + filler + " = 0;"
-
+                + " "
                 + "    static int getStaticB() {"
                 + "         return intFieldB" + filler + ";"
                 + "     }"
@@ -186,8 +178,7 @@ public class MethodHandleStress {
                 + "         intFieldB" + filler + " = x;"
                 + "     }"
                 + " "
-                + " "
-                + "   static int intFieldC" + filler + " = 0;"
+                + "    static int intFieldC" + filler + " = 0;"
                 + "    static int staticPadCA" + filler + " = 0;"
                 + "    static int staticPadCB" + filler + " = 0;"
                 + "    static int staticPadCC" + filler + " = 0;"
@@ -208,38 +199,35 @@ public class MethodHandleStress {
                 + "    static int staticPadCR" + filler + " = 0;"
                 + "    static int staticPadCS" + filler + " = 0;"
                 + "    static int staticPadCT" + filler + " = 0;"
-
+                + " "
                 + "    static int getStaticC() {"
-                + "         return intFieldC" + filler + ";"
-                + "     }"
+                + "        return intFieldC" + filler + ";"
+                + "    }"
                 + " "
                 + "    static void setStaticC(int x) {"
-                + "         intFieldC" + filler + " = x;"
-                + "     }"
+                + "        intFieldC" + filler + " = x;"
+                + "    }"
                 + " "
-                + " "
-                + "   static int intFieldD" + filler + " = 0;"
+                + "    static int intFieldD" + filler + " = 0;"
                 + " "
                 + "    static int getStaticD() {"
-                + "         return intFieldD" + filler + ";"
-                + "     }"
+                + "        return intFieldD" + filler + ";"
+                + "    }"
                 + " "
                 + "    static void setStaticD(int x) {"
-                + "         intFieldD" + filler + " = x;"
-                + "     }"
-                + " "
-                + " "
+                + "        intFieldD" + filler + " = x;"
+                + "    }"
                 + " "
                 + "    int instA" + filler + " = 0;"
                 + " "
-                + "     int getA() {"
-                + "         return instA" + filler + ";"
-                + "     }"
+                + "    int getA() {"
+                + "        return instA" + filler + ";"
+                + "    }"
                 + " "
-                + "     void setA(int x) {"
-                + "         instA" + filler + "= x;"
-                + "     }"
-
+                + "    void setA(int x) {"
+                + "        instA" + filler + "= x;"
+                + "    }"
+                + " "
                 + "    int padAA" + filler + " = 0;"
                 + "    int padAB" + filler + " = 0;"
                 + "    int padAC" + filler + " = 0;"
@@ -260,8 +248,6 @@ public class MethodHandleStress {
                 + "    int padAR" + filler + " = 0;"
                 + "    int padAS" + filler + " = 0;"
                 + "    int padAT" + filler + " = 0;"
-
-
                 + " "
                 + "    int instB" + filler + " = 0;"
                 + " "
@@ -294,17 +280,15 @@ public class MethodHandleStress {
                 + "    int padBS" + filler + " = 0;"
                 + "    int padBT" + filler + " = 0;"
                 + " "
-                + " "
                 + "    int instC" + filler + " = 0;"
                 + " "
-                + "     int getC() {"
-                + "         return intFieldC" + filler + ";"
-                + "     }"
+                + "    int getC() {"
+                + "        return intFieldC" + filler + ";"
+                + "    }"
                 + " "
-                + "     void setC(int x) {"
-                + "         instC" + filler + "= x;"
-                + "     }"
-                + " "
+                + "    void setC(int x) {"
+                + "        instC" + filler + "= x;"
+                + "    }"
                 + " "
                 + "    int padCA" + filler + " = 0;"
                 + "    int padCB" + filler + " = 0;"
@@ -327,16 +311,15 @@ public class MethodHandleStress {
                 + "    int padCS" + filler + " = 0;"
                 + "    int padCT" + filler + " = 0;"
                 + " "
-                + " "
                 + "    int instD" + filler + " = 0;"
                 + " "
-                + "     int  getD() {"
-                + "         return intFieldD" + filler + ";"
-                + "     }"
+                + "    int  getD() {"
+                + "        return intFieldD" + filler + ";"
+                + "    }"
                 + " "
-                + "     void setD(int x) {"
-                + "         instD" + filler + "= x;"
-                + "     }"
+                + "    void setD(int x) {"
+                + "        instD" + filler + "= x;"
+                + "    }"
                 + " "
                 + "    int padDA" + filler + " = 0;"
                 + "    int padDB" + filler + " = 0;"
@@ -360,54 +343,42 @@ public class MethodHandleStress {
                 + "    int padDT" + filler + " = 0;"
                 + " "
                 + " "
-                + " "
-                + " "
                 + "    volatile MethodHandle targetMethod = null;"
                 + " "
+                + "    public void setMethod( MethodHandle m) {"
+                + "        targetMethod = m;"
+                + "    }"
                 + " "
-                + "   public void setMethod( MethodHandle m) {"
-                + "     targetMethod = m;"
-                + "   }"
+                + " "
+                + "    public static Integer decrement" + filler + "( Integer d) {"
+                + "        return --d;"
+                + "    }"
                 + " "
                 + " "
-                + "   public static Integer decrement" + filler + "( Integer d) {"
-                + "     return --d;"
-                + "   }"
-                + " "
-                + newLine
-                + " "
-                + "      static ToIntFunction<Integer> next" + filler + " = d -> decrement" + filler + "(d);"
+                + "    static ToIntFunction<Integer> next" + filler + " = d -> decrement" + filler + "(d);"
                 + " "
                 + " "
                 + newLine
-                + "   public Integer get( Integer depth) throws Throwable { "
+                + "    public Integer get( Integer depth) throws Throwable {"
                 + newLine
-                + "       if (depth > 0) {"
+                + "        if (depth > 0) {"
                 + newLine
+                + "            Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
+                + "            return  get2" + filler + "( newDepth);"
+                + newLine
+                + "        } else {"
+                + "            return  getA() + getMyId();"
+                + "        }"
+                + "    }"
                 + " "
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + " "
-                + "         return  get2" + filler + "( newDepth);"
-                + newLine
-                + "       } else {"
-                + newLine
-                + "         return  getA() + getMyId();"
-                + "       }"
-                + "   }"
-                + " "
-                + "   public Integer get2" + filler + "( Integer depth) throws Throwable { "
-                + "       if (depth > 0 ) {"
-                + newLine
-                + newLine
-                + "         Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
-                + "         return  getB();"
-                + newLine
-                + "       } else {"
-                + "         return  getB();"
-                + "       }"
-                + "   }"
-                + " "
-                + " "
+                + "    public Integer get2" + filler + "( Integer depth) throws Throwable {"
+                + "        if (depth > 0 ) {"
+                + "            Integer newDepth =  next" + filler + ".applyAsInt( --depth );"
+                + "            return  getB();"
+                + "        } else {"
+                + "            return  getB();"
+                + "        }"
+                + "    }"
                 + "}";
     }
 
@@ -559,23 +530,18 @@ public class MethodHandleStress {
     }
 
     @Benchmark
-    @Fork(value = 3, jvmArgs = {"-XX:+UseLargePages",
-            "-XX:MetaspaceSize=1G", "-XX:MaxMetaspaceSize=1G",
-        "-XX:ReservedCodeCacheSize=2g", "-XX:InitialCodeCacheSize=2g",
-            "-Xmx2g", "-Xms2g",
-            "-XX:+UnlockDiagnosticVMOptions", "-XX:+PrintCodeCache",
-            "-XX:NativeMemoryTracking=summary", "-XX:+PrintNMTStatistics"})
+    @Fork(value = 3, jvmArgs = { "-XX:MetaspaceSize=1G", "-XX:MaxMetaspaceSize=1G",
+            "-XX:ReservedCodeCacheSize=2g", "-XX:InitialCodeCacheSize=2g",
+            "-Xmx2g", "-Xms2g" })
     public Integer work() throws Exception {
         int sum = 0;
 
-        // Call a method of a random instance of a random class up to the specified range
-        for (int index = 0; index < 1 /* loops */; index++) {
-            try {
-                sum += executeOne();
-            } catch (Throwable e) {
-                System.out.println("Exception = " + e);
-                e.printStackTrace();
-            }
+        // Call a method of a random instance of a random class
+        try {
+            sum += executeOne();
+        } catch (Throwable e) {
+            System.out.println("Exception = " + e);
+            e.printStackTrace();
         }
         return sum;
     }
